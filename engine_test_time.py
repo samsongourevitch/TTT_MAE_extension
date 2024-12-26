@@ -170,7 +170,11 @@ def train_on_test(base_model: torch.nn.Module,
                 np.save(f, np.array(all_losses))
             all_results = [list() for i in range(args.steps_per_example)]
             all_losses = [list() for i in range(args.steps_per_example)]
-        model, optimizer, loss_scaler = _reinitialize_model(base_model, base_optimizer, base_scalar, clone_model, args, device)
+        if args.keep_model:
+            if data_iter_step % 20 == 0:
+                torch.save(model.state_dict(), os.path.join(args.output_dir, f'model_{data_iter_step}.pth'))
+        else :
+            model, optimizer, loss_scaler = _reinitialize_model(base_model, base_optimizer, base_scalar, clone_model, args, device)
     save_accuracy_results(args)
     # gather the stats from all processes
     try:
