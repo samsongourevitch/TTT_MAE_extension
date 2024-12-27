@@ -4,7 +4,7 @@ __pycache__/*
 *.pth
 output_dir/*
 blur
-checkpoints
+*checkpoints
 environment.yml
 myenv
 imagenetC

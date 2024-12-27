@@ -104,6 +104,7 @@ def get_args_parser():
     parser.add_argument('--keep_model', action='store_true')
     parser.add_argument('--save_model_freq', default=None, type=int)
     parser.add_argument('--from_custom_model', action='store_true')
+    parser.add_argument('--save_latents', action='store_true')
 
     return parser
 

@@ -161,6 +161,16 @@ def train_on_test(base_model: torch.nn.Module,
                         metric_logger.update(top1_acc=acc1)
                         metric_logger.update(loss=loss_value)
                     all_results[step_per_example // accum_iter].append(acc1)
+
+                    ### find encoder embedding
+                    if args.save_latents and (step_per_example + 1) // accum_iter == args.steps_per_example:
+                        latent_representation, _, _ = model.forward_encoder(test_samples, mask_ratio=0)
+                        latents_dir = os.path.join(args.output_dir, 'latents')
+                        if not os.path.exists(latents_dir):
+                            os.makedirs(latents_dir)
+                        with open(os.path.join(latents_dir, f'latents_{data_iter_step}_{step_per_example}.npy'), 'wb') as f:
+                            np.save(f, latent_representation.cpu().detach().numpy())
+                    
                     model.train()
         if data_iter_step % 50 == 1 or True:
             print('step: {}, acc {} rec-loss {}'.format(data_iter_step, np.mean(all_results[-1]), loss_value))
