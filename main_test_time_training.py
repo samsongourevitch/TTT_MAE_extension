@@ -100,7 +100,10 @@ def get_args_parser():
     parser.add_argument('--dist_on_itp', action='store_true')
     parser.add_argument('--dist_url', default='env://',
                         help='url used to set up distributed training')
+    #custom
     parser.add_argument('--keep_model', action='store_true')
+    parser.add_argument('--save_model_freq', default=20, type=int)
+    parser.add_argument('--from_custom_model', action='store_true')
 
     return parser
 
@@ -118,20 +121,27 @@ def load_combined_model(args, num_classes: int = 1000):
                                                    classifier_depth=classifier_depth, classifier_embed_dim=classifier_embed_dim, 
                                                    classifier_num_heads=classifier_num_heads,
                                                    rotation_prediction=False)
-    model_checkpoint = torch.load(args.resume_model, map_location='cpu')
-    head_checkpoint = torch.load(args.resume_finetune, map_location='cpu')
-    
-    if args.head_type == 'linear':
-        model_checkpoint['model']['bn.running_mean'] = head_checkpoint['model']['head.0.running_mean']
-        model_checkpoint['model']['bn.running_var'] = head_checkpoint['model']['head.0.running_var']
-        model_checkpoint['model']['head.weight'] = head_checkpoint['model']['head.1.weight']
-        model_checkpoint['model']['head.bias'] = head_checkpoint['model']['head.1.bias']
+
+    if args.from_custom_model:
+        model_checkpoint = torch.load(args.resume_model, map_location='cpu')
+        model.load_state_dict(model_checkpoint)
+        print("model loaded from checkpoint:", args.resume_model)
     else:
-        assert args.classifier_depth != 0, 'Please provide classifier_depth parameter.'
-        for key in head_checkpoint['model']:
-            if key.startswith('classifier'):
-                model_checkpoint['model'][key] = head_checkpoint['model'][key]
-    model.load_state_dict(model_checkpoint['model'])
+        model_checkpoint = torch.load(args.resume_model, map_location='cpu')
+        head_checkpoint = torch.load(args.resume_finetune, map_location='cpu')
+        
+        if args.head_type == 'linear':
+            model_checkpoint['model']['bn.running_mean'] = head_checkpoint['model']['head.0.running_mean']
+            model_checkpoint['model']['bn.running_var'] = head_checkpoint['model']['head.0.running_var']
+            model_checkpoint['model']['head.weight'] = head_checkpoint['model']['head.1.weight']
+            model_checkpoint['model']['head.bias'] = head_checkpoint['model']['head.1.bias']
+        else:
+            assert args.classifier_depth != 0, 'Please provide classifier_depth parameter.'
+            for key in head_checkpoint['model']:
+                if key.startswith('classifier'):
+                    model_checkpoint['model'][key] = head_checkpoint['model'][key]
+        model.load_state_dict(model_checkpoint['model'])
+
     optimizer = None
     if args.load_loss_scalar:
         loss_scaler = NativeScaler()

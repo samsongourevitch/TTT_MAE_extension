@@ -7,3 +7,5 @@ blur
 checkpoints
 environment.yml
 myenv
+imagenetC
+blur_images.tar

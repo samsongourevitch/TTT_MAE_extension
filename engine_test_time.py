@@ -22,6 +22,7 @@ from util.misc import NativeScalerWithGradNormCount as NativeScaler
 import timm.optim.optim_factory as optim_factory
 import glob
 
+import os
 
 @torch.no_grad()
 def accuracy(output, target, topk=(1,)):
@@ -161,7 +162,7 @@ def train_on_test(base_model: torch.nn.Module,
                         metric_logger.update(loss=loss_value)
                     all_results[step_per_example // accum_iter].append(acc1)
                     model.train()
-        if data_iter_step % 50 == 1:
+        if data_iter_step % 50 == 1 or True:
             print('step: {}, acc {} rec-loss {}'.format(data_iter_step, np.mean(all_results[-1]), loss_value))
         if data_iter_step % 500 == 499 or (data_iter_step == dataset_len - 1):
             with open(os.path.join(args.output_dir, f'results_{data_iter_step}.npy'), 'wb') as f:
@@ -171,8 +172,10 @@ def train_on_test(base_model: torch.nn.Module,
             all_results = [list() for i in range(args.steps_per_example)]
             all_losses = [list() for i in range(args.steps_per_example)]
         if args.keep_model:
-            if data_iter_step % 20 == 0:
-                torch.save(model.state_dict(), os.path.join(args.output_dir, f'model_{data_iter_step}.pth'))
+            if (data_iter_step+1) % args.save_model_freq == 0 or (data_iter_step == dataset_len - 1):
+                checkpoints_dir = os.path.join(args.output_dir, 'checkpoints')
+                os.makedirs(checkpoints_dir, exist_ok=True)
+                torch.save(model.state_dict(), os.path.join(checkpoints_dir, f'model_{data_iter_step}.pth'))
         else :
             model, optimizer, loss_scaler = _reinitialize_model(base_model, base_optimizer, base_scalar, clone_model, args, device)
     save_accuracy_results(args)
