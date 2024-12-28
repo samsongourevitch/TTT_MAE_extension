@@ -52,6 +52,10 @@ def get_args_parser():
     parser.add_argument('--head_type', default='linear',
                         help='Head type - linear or vit_head')
     parser.add_argument('--num_workers', default=10, type=int)
+
+    parser.add_argument('--save_latents', action='store_true',
+                        help='Save latent representation.')
+    parser.add_argument('--from_custom_model', action='store_true')
     
     return parser
 
@@ -73,7 +77,8 @@ def main(args):
     all_losses = []
     model.eval()
     data_len = len(dataset_val)
-    for index in range(data_len):
+    #for index in range(data_len):
+    for index in range(50):
         # Get the samples:
         current_idx = index
         samples, labels = dataset_val[current_idx]
@@ -87,6 +92,17 @@ def main(args):
         if index % 4000 == 1:
             print(np.mean(all_acc[-1000:]))
             print(np.mean(all_losses[-1000:]))
+
+        ### find encoder embedding
+        with torch.no_grad():
+            if args.save_latents :
+                latent_representation, _, _ = model.forward_encoder(samples, mask_ratio=0)
+                latents_dir = os.path.join(args.output_dir, 'latents')
+                if not os.path.exists(latents_dir):
+                    os.makedirs(latents_dir)
+                with open(os.path.join(latents_dir, f'latents_{index}.npy'), 'wb') as f:
+                    np.save(f, latent_representation.cpu().detach().numpy())
+
     print('Saving to', os.path.join(args.output_dir, 'accuracy.txt'))
     with open(os.path.join(args.output_dir, 'accuracy.txt'), 'a') as f:
         f.write(f'{str(args)}\n')
