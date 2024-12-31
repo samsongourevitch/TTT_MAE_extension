@@ -8,4 +8,9 @@ blur
 environment.yml
 myenv
 imagenetC
+imagenetC_OOD
+frost
+snow
+fog
+brightness
 blur_images.tar

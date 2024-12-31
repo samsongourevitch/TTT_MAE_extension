@@ -1,11 +1,11 @@
 DATA_PATH_BASE='/nfs/scistore19/alistgrp/trobert/git_repo/TTT_MAE_extension/imagenetC/extract'
 DATASET='defocus_blur'
 LEVEL='3'
-ROUND='3'
+ROUND='5'
 RESUME_MODEL='checkpoints/mae_pretrain_vit_large_full.pth'
-RESUME_MODEL='results/defocus_blur/level_3/round_2/checkpoints/model_49.pth'
+RESUME_MODEL='results/defocus_blur/level_3/round_4/checkpoints/model_49.pth'
 RESUME_FINETUNE='checkpoints/prob_lr1e-3_wd.2_blk12_ep20.pth'
-RESUME_FINETUNE='results/defocus_blur/level_3/round_2/checkpoints/model_49.pth'
+RESUME_FINETUNE='results/defocus_blur/level_3/round_4/checkpoints/model_49.pth'
 OUTPUT_DIR_BASE='results'
 
 python main_test_time_training.py \
