@@ -12,7 +12,7 @@ def replicate_directory_structure(source_dir, destination_dir):
 
 # Example usage
 if __name__ == "__main__":
-    source_dir = 'imagenetC/full'
-    destination_dir = 'imagenetC/extract'
+    source_dir = 'imagenetC_OOD/full'
+    destination_dir = 'imagenetC_OOD/extract'
 
     replicate_directory_structure(source_dir, destination_dir)
