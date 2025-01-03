@@ -112,7 +112,10 @@ def train_on_test(base_model: torch.nn.Module,
     if log_writer is not None:
         print('log_dir: {}'.format(log_writer.log_dir))
     dataset_len = len(dataset_val)
-    for data_iter_step in range(iter_start, dataset_len):
+
+    max_len = min(args.length, dataset_len)
+
+    for data_iter_step in range(iter_start, max_len):
         val_data = next(val_loader)
         (test_samples, test_label) = val_data
         test_samples = test_samples.to(device, non_blocking=True)[0]
@@ -163,7 +166,8 @@ def train_on_test(base_model: torch.nn.Module,
                     all_results[step_per_example // accum_iter].append(acc1)
 
                     ### find encoder embedding
-                    if args.save_latents and (step_per_example + 1) // accum_iter == args.steps_per_example:
+                    #if args.save_latents and (step_per_example + 1) // accum_iter == args.steps_per_example :
+                    if args.save_latents and (step_per_example + 1) // accum_iter == args.steps_per_example and data_iter_step < 50:
                         latent_representation, _, _ = model.forward_encoder(test_samples, mask_ratio=0)
                         latents_dir = os.path.join(args.output_dir, 'latents')
                         if not os.path.exists(latents_dir):
@@ -174,7 +178,7 @@ def train_on_test(base_model: torch.nn.Module,
                     model.train()
         if data_iter_step % 50 == 1 or True:
             print('step: {}, acc {} rec-loss {}'.format(data_iter_step, np.mean(all_results[-1]), loss_value))
-        if data_iter_step % 500 == 499 or (data_iter_step == dataset_len - 1):
+        if data_iter_step % 500 == 499 or (data_iter_step == max_len - 1):
             with open(os.path.join(args.output_dir, f'results_{data_iter_step}.npy'), 'wb') as f:
                 np.save(f, np.array(all_results))
             with open(os.path.join(args.output_dir, f'losses_{data_iter_step}.npy'), 'wb') as f:
@@ -182,7 +186,7 @@ def train_on_test(base_model: torch.nn.Module,
             all_results = [list() for i in range(args.steps_per_example)]
             all_losses = [list() for i in range(args.steps_per_example)]
         if args.keep_model:
-            if (data_iter_step+1) % args.save_model_freq == 0 or (data_iter_step == dataset_len - 1):
+            if args.save_model_freq is not None and ((data_iter_step+1) % args.save_model_freq == 0 or (data_iter_step == dataset_len - 1)) :
                 checkpoints_dir = os.path.join(args.output_dir, 'checkpoints')
                 os.makedirs(checkpoints_dir, exist_ok=True)
                 torch.save(model.state_dict(), os.path.join(checkpoints_dir, f'model_{data_iter_step}.pth'))
@@ -204,8 +208,8 @@ def save_accuracy_results(args):
         all_data = np.load(f_name)
         for step in range(args.steps_per_example):
             all_all_results[step] += all_data[step].tolist()
-    with open(os.path.join(args.output_dir, 'model-final.pth'), 'w') as f:
-        f.write(f'Done!\n')
+#    with open(os.path.join(args.output_dir, 'model-final.pth'), 'w') as f:
+#        f.write(f'Done!\n')
     with open(os.path.join(args.output_dir, 'accuracy.txt'), 'a') as f:
         f.write(f'{str(args)}\n')
         for i in range(args.steps_per_example):
