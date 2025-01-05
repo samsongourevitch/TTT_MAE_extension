@@ -1,17 +1,17 @@
-DATA_PATH_BASE='/nfs/scistore19/alistgrp/trobert/git_repo/TTT_MAE_extension/imagenetC_OOD/full'
-DATASET='snow'
+DATA_PATH_BASE='/nfs/scistore19/alistgrp/trobert/git_repo/TTT_MAE_extension/imagenetC/extract'
+DATASET='defocus_blur'
 LEVEL='3'
 ROUND='0'
 
-OUTPUT_DIR_BASE='results_TTT/OOD/Latents'
+OUTPUT_DIR_BASE='results/train/Latents_2'
 
 RESUME_MODEL='checkpoints/mae_pretrain_vit_large_full.pth'
 RESUME_FINETUNE='checkpoints/prob_lr1e-3_wd.2_blk12_ep20.pth'
 
-#for ROUND in 4 5 ; do 
+#for ROUND in 1 2 3 4 5 ; do 
 
-# RESUME_MODEL="results/during_training/level_3/round_${ROUND}/checkpoints/model_49.pth"
-# RESUME_FINETUNE="results/during_training/level_3/round_${ROUND}/checkpoints/model_49.pth"
+    #RESUME_MODEL="results/during_training/level_3/round_${ROUND}/checkpoints/model_49.pth"
+    #RESUME_FINETUNE="results/during_training/level_3/round_${ROUND}/checkpoints/model_49.pth"
 
 python main_test_time_training.py \
     --seed 0 \
@@ -19,9 +19,9 @@ python main_test_time_training.py \
     --model mae_vit_large_patch16 \
     --input_size 224 \
     --batch_size 32 \
-    --steps_per_example 20 \
+    --steps_per_example 1 \
     --mask_ratio 0.75 \
-    --blr 1e-2 \
+    --blr 0 \
     --norm_pix_loss \
     --optimizer_type 'sgd' \
     --classifier_depth 12 \
@@ -34,8 +34,6 @@ python main_test_time_training.py \
     --resume_model ${RESUME_MODEL} \
     --resume_finetune ${RESUME_FINETUNE} \
     \
-    --length 250 \
-    --save_latents \
-    #--from_custom_model
+    --length 50 \
     
 #done
